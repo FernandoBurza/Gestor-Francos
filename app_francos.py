@@ -165,7 +165,7 @@ def exportar_excel_formateado(df):
     return output.getvalue()
 
 # --- INTERFAZ DE USUARIO ---
-st.title("🗓️ Gestor de Francos AR")
+st.title("🗓️ Gestor de Francos")
 st.markdown("---")
 
 with st.sidebar:
