@@ -183,8 +183,6 @@ with st.sidebar:
     modo_carga = st.radio("Método para calcular arrastre:", 
                           ["Usar planilla mes pasado", "Manual (Subir personal.xlsx)"])
     
-    st.divider()
-    st.caption("© 2026 Fernando. Todos los derechos reservados.")
 
 # Procesamiento de archivos según el modo seleccionado
 df_input = None
