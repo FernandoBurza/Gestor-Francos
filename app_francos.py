@@ -7,14 +7,27 @@ import io
 from openpyxl.styles import PatternFill, Font, Alignment
 from openpyxl.utils import get_column_letter
 
-# --- FUNCIÓN NUEVA: CALCULAR ARRASTRE DESDE MES ANTERIOR ---
+# --- CONFIGURACIÓN DE PÁGINA ---
+st.set_page_config(
+    page_title="Gestor de Francos AR", 
+    page_icon="🗓️", 
+    layout="wide"
+)
+
+# --- OCULTAR ELEMENTOS DE INTERFAZ DE STREAMLIT ---
+hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            .stDeployButton {display: none;}
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
+# --- LÓGICA: CALCULAR ARRASTRE DESDE MES ANTERIOR ---
 def procesar_historial_mes_anterior(df_mes_pasado):
-    """
-    Toma el Excel generado el mes anterior y cuenta cuántos días 
-    seguidos trabajó cada agente hasta el último día del mes.
-    """
     try:
-        # Identificar columnas de días (numéricas) y ordenarlas de mayor a menor
         columnas_dias = [c for c in df_mes_pasado.columns if str(c).isdigit()]
         columnas_dias.sort(key=int, reverse=True) 
         
@@ -25,7 +38,7 @@ def procesar_historial_mes_anterior(df_mes_pasado):
                 if fila[dia] == 'T':
                     conteo += 1
                 else:
-                    break # Encontró un franco (F), deja de contar hacia atrás
+                    break
             
             datos_procesados.append({
                 'Agente': fila['Agente'],
@@ -97,7 +110,7 @@ def optimizar_francos(df_empleados, mes_num, anio):
     if status in [cp_model.OPTIMAL, cp_model.FEASIBLE]:
         res = []
         for i, emp in enumerate(empleados):
-            fila = {"Agente": emp['Agente'], "Tipo": emp['Tipo'], "Arrastre": int(emp.get('Dias_Acumulados', 0))}
+            fila = {"Agente": emp['Agente'], "Tipo": emp['Tipo'], "Arrastre Inicial": int(emp.get('Dias_Acumulados', 0))}
             for d in range(1, num_dias + 1):
                 fila[f"{d}"] = "T" if solver.Value(x[i, d]) == 1 else "F"
             res.append(fila)
@@ -125,42 +138,66 @@ def exportar_excel_formateado(df):
                     cell.font = t_font
                 cell.alignment = Alignment(horizontal='center')
         for col in range(1, ws.max_column + 1):
-            ws.column_dimensions[get_column_letter(col)].width = 18 if col == 1 else 4
+            ws.column_dimensions[get_column_letter(col)].width = 20 if col == 1 else 4
     return output.getvalue()
 
-# --- INTERFAZ STREAMLIT ---
-st.set_page_config(page_title="Gestor de Francos Pro", layout="wide")
-st.title("🗓️ Asignador Automático de Francos")
+# --- INTERFAZ DE USUARIO ---
+st.title("🗓️ Gestor de Francos AR")
+st.markdown("---")
 
 with st.sidebar:
-    st.header("Configuración")
+    st.header("⚙️ Configuración")
     meses_es = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"]
-    mes_nombre = st.selectbox("Mes a Planificar", meses_es, index=datetime.now().month % 12)
+    
+    # Preseleccionar el mes siguiente al actual
+    mes_default = (datetime.now().month) % 12
+    mes_nombre = st.selectbox("Mes a planificar", meses_es, index=mes_default)
     mes_num = meses_es.index(mes_nombre) + 1
     anio = st.number_input("Año", value=datetime.now().year, step=1)
     
     st.divider()
-    modo_carga = st.radio("Método de Arrastre:", ["Cargar planilla mes pasado", "Manual (Subir personal.xlsx)"])
+    st.subheader("📥 Carga de Datos")
+    modo_carga = st.radio("Método para calcular arrastre:", 
+                          ["Usar planilla mes pasado", "Manual (Subir personal.xlsx)"])
+    
+    st.divider()
+    st.caption("© 2026 Fernando. Todos los derechos reservados.")
 
-if modo_carga == "Cargar planilla mes pasado":
-    file = st.file_uploader("Sube el Excel que descargaste el MES PASADO", type=["xlsx"])
+# Procesamiento de archivos según el modo seleccionado
+df_input = None
+if modo_carga == "Usar planilla mes pasado":
+    file = st.file_uploader("Sube el Excel generado el mes anterior", type=["xlsx"])
     if file:
         df_raw = pd.read_excel(file)
         df_input = procesar_historial_mes_anterior(df_raw)
         if df_input is not None:
-            st.info("✅ Arrastre calculado automáticamente desde el historial.")
-            st.dataframe(df_input, height=200)
+            st.success("✅ Historial procesado. Arrastre calculado automáticamente.")
+            with st.expander("Ver datos de arrastre detectados"):
+                st.table(df_input)
 else:
-    file = st.file_uploader("Subir personal.xlsx (debe tener columna 'Dias_Acumulados')", type=["xlsx"])
+    file = st.file_uploader("Sube el archivo de personal (debe tener columna 'Dias_Acumulados')", type=["xlsx"])
     if file:
         df_input = pd.read_excel(file)
 
-if file and st.button("🚀 Generar Planificación"):
-    res_df = optimizar_francos(df_input, mes_num, anio)
-    if res_df is not None:
-        st.success(f"¡Planificación de {mes_nombre} generada!")
-        st.dataframe(res_df)
-        excel_data = exportar_excel_formateado(res_df)
-        st.download_button(label="📥 Descargar Excel", data=excel_data, file_name=f"Planificacion_{mes_nombre}_{anio}.xlsx")
-    else:
-        st.error("No se encontró solución viable.")
+# Botón de acción principal
+if df_input is not None:
+    if st.button("🚀 Generar Planificación de Francos"):
+        with st.spinner("Calculando la mejor combinación de francos..."):
+            res_df = optimizar_francos(df_input, mes_num, anio)
+            
+            if res_df is not None:
+                st.balloons()
+                st.subheader(f"📅 Planificación de {mes_nombre} {anio}")
+                st.dataframe(res_df, use_container_width=True)
+                
+                excel_data = exportar_excel_formateado(res_df)
+                st.download_button(
+                    label="📥 Descargar Excel con Colores", 
+                    data=excel_data, 
+                    file_name=f"Planificacion_{mes_nombre}_{anio}.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                )
+            else:
+                st.error("❌ No se encontró una solución viable. Prueba revisando si hay demasiados agentes con arrastre crítico (7 u 8 días) al inicio del mes.")
+else:
+    st.info("Por favor, sube un archivo en la barra lateral para comenzar.")
