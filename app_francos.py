@@ -14,29 +14,33 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- OCULTAR ELEMENTOS DE INTERFAZ (VERSIÓN AGRESIVA) ---
+# --- DEJAR MENÚ LATERAL FIJO Y OCULTAR BOTONES DE CIERRE ---
 hide_st_style = """
             <style>
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
             
-            /* Oculta TODO el contenedor de botones de la derecha (Fork, GitHub, Deploy) */
-            header [data-testid="stHeaderActionElements"], 
-            .stDeployButton, 
-            .viewerBadge_container__1QS13, 
-            [data-testid="manage-app-button"],
-            .stAppDeployButton {
+            /* Oculta los botones de la derecha (Fork, GitHub, etc) */
+            header [data-testid="stHeaderActionElements"] {
                 display: none !important;
             }
 
-            /* Esto oculta específicamente el botón de Fork y GitHub que aparecen en repos públicos */
-            header a, header button {
+            /* 1. OCULTA EL BOTÓN DE CIERRE (La 'X' dentro del menú) */
+            [data-testid="stSidebarCollapseButton"] {
                 display: none !important;
             }
 
-            /* Pero... necesitamos que la FLECHA del menú lateral sí se vea */
-            /* La flecha no está dentro de 'stHeaderActionElements', así que debería sobrevivir */
+            /* 2. OCULTA LA FLECHA DE APERTURA (Por si se llegara a cerrar) */
+            button[kind="header"] {
+                display: none !important;
+            }
             
+            /* 3. OPCIONAL: Evita que el usuario pueda colapsar con el teclado */
+            [data-testid="stSidebar"] {
+                min-width: 300px !important;
+                max-width: 300px !important;
+            }
+
             header {
                 background-color: rgba(0,0,0,0) !important;
             }
