@@ -19,8 +19,19 @@ hide_st_style = """
             <style>
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
-            header {visibility: hidden;}
-            .stDeployButton {display: none;}
+            
+            /* Oculta los botones de la derecha (Deploy, GitHub) pero mantiene la flecha lateral */
+            [data-testid="stHeaderActionElements"] {
+                display: none;
+            }
+            
+            /* Mantiene el header transparente para que no moleste visualmente */
+            header {
+                background-color: rgba(0,0,0,0);
+            }
+            
+            /* Ajuste por si el botón de cerrar/abrir queda muy arriba */
+            [data-testid="stSidebarNav"] {display: none;}
             </style>
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
