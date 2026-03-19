@@ -14,31 +14,31 @@ st.set_page_config(
     layout="wide"
 )
 
-# -# --- OCULTAR ELEMENTOS DE INTERFAZ (VERSIÓN DEFINITIVA) ---
+# --- OCULTAR ELEMENTOS DE INTERFAZ (VERSIÓN AGRESIVA) ---
 hide_st_style = """
             <style>
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
             
-            /* Oculta los botones de Deploy, GitHub y el botón de 'Manage app' */
-            .stDeployButton, .viewerBadge_container__1QS13, header [data-testid="stHeaderActionElements"], 
-            button[title="Manage app"], .stAppDeployButton {
-                display: none !important;
-            }
-            
-            /* Asegura que el botón de 'Manage app' inferior desaparezca */
-            [data-testid="manage-app-button"] {
+            /* Oculta TODO el contenedor de botones de la derecha (Fork, GitHub, Deploy) */
+            header [data-testid="stHeaderActionElements"], 
+            .stDeployButton, 
+            .viewerBadge_container__1QS13, 
+            [data-testid="manage-app-button"],
+            .stAppDeployButton {
                 display: none !important;
             }
 
-            /* Mantiene el header funcional para la flecha pero invisible */
-            header {
-                background-color: rgba(0,0,0,0);
+            /* Esto oculta específicamente el botón de Fork y GitHub que aparecen en repos públicos */
+            header a, header button {
+                display: none !important;
             }
+
+            /* Pero... necesitamos que la FLECHA del menú lateral sí se vea */
+            /* La flecha no está dentro de 'stHeaderActionElements', así que debería sobrevivir */
             
-            /* Quita el espacio extra arriba para que la flecha se vea bien */
-            [data-testid="stHeader"] {
-                height: 3rem;
+            header {
+                background-color: rgba(0,0,0,0) !important;
             }
             </style>
             """
