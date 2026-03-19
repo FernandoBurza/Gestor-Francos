@@ -20,18 +20,26 @@ hide_st_style = """
             #MainMenu {visibility: hidden;}
             footer {visibility: hidden;}
             
-            /* Oculta los botones de la derecha (Deploy, GitHub) pero mantiene la flecha lateral */
-            [data-testid="stHeaderActionElements"] {
-                display: none;
+            /* Oculta los botones de Deploy, GitHub y el botón de 'Manage app' */
+            .stDeployButton, .viewerBadge_container__1QS13, header [data-testid="stHeaderActionElements"], 
+            button[title="Manage app"], .stAppDeployButton {
+                display: none !important;
             }
             
-            /* Mantiene el header transparente para que no moleste visualmente */
+            /* Asegura que el botón de 'Manage app' inferior desaparezca */
+            [data-testid="manage-app-button"] {
+                display: none !important;
+            }
+
+            /* Mantiene el header funcional para la flecha pero invisible */
             header {
                 background-color: rgba(0,0,0,0);
             }
             
-            /* Ajuste por si el botón de cerrar/abrir queda muy arriba */
-            [data-testid="stSidebarNav"] {display: none;}
+            /* Quita el espacio extra arriba para que la flecha se vea bien */
+            [data-testid="stHeader"] {
+                height: 3rem;
+            }
             </style>
             """
 st.markdown(hide_st_style, unsafe_allow_html=True)
