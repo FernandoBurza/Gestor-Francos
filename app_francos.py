@@ -199,5 +199,3 @@ if df_input is not None:
                 )
             else:
                 st.error("❌ No se encontró una solución viable. Prueba revisando si hay demasiados agentes con arrastre crítico (7 u 8 días) al inicio del mes.")
-else:
-    st.info("Por favor, sube un archivo en la barra lateral para comenzar.")
